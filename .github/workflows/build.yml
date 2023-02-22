@@ -1,0 +1,47 @@
+# This is a basic workflow to help you get started with Actions
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  # This workflow contains a single job called "build"
+  build:
+
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: start qualys cs sensor
+        run: |
+          set -x
+          docker run -d --restart on-failure -v /var/run/docker.sock:/var/run/docker.sock:ro -v /etc/qualys:/usr/local/qualys/qpa/data/conf/agent-data -v /usr/local/qualys/sensor/data:/usr/local/qualys/qpa/data -e ACTIVATIONID="${{ secrets.Q_ACTIVATIONID }}" -e CUSTOMERID="${{ secrets.Q_CUSTOMERID }}" -e POD_URL="${{ secrets.Q_POD_URL }}" --name qualys-container-sensor qualys/qcs-sensor:latest --cicd-deployed-sensor
+          sleep 20
+
+      - name: docker build and run
+        run: |
+          docker build . -t foo:bar
+          docker run foo:bar
+          
+      # needs: <Qualys API Server> <Username> <Password> <Image Id|Name>
+      - name: validate image
+        run: |
+          chmod +x ./validate_image.sh
+          ./validate_image.sh '${{ secrets.Q_API_SERVER }}' '${{ secrets.Q_USERNAME }}' '${{ secrets.Q_PASSWORD }}' 'foo:bar'
+
+
