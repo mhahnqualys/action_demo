@@ -33,6 +33,8 @@ to correct quoting of variables.
 This is the action workflow. It has several steps:
 - `start the qualys cs sensor` - Runs the sensor as a background process for the rest of the workflow.
 - `docker build and run` - Build the demo container image.
+
+
 - `validate image` - Runs the script to integorate the scan results.
 
 ## `jq_filter.txt`
